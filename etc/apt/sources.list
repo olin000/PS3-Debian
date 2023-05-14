@@ -1,0 +1,2 @@
+deb http://ftp.ports.debian.org/debian-ports/ sid main
+# deb http://ftp.ports.debian.org/debian-ports/ sid unreleased

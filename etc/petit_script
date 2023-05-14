@@ -1,0 +1,2 @@
+kexec -l /tmp/petitboot/mnt/sda1/boot/vmlinux-3.12.6-red-ribbon-powerpc64-ps3 --initrd=/tmp/petitboot/mnt/sda1/boot/initrd.img-3.12.6-red-ribbon-powerpc64-ps3 --command-line="root=UUID=c02a7a58-d6a1-44cf-889c-d84777814c99"
+kexec -e
