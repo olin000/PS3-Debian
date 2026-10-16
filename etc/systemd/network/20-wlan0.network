@@ -1,0 +1,8 @@
+[Match]
+Name=wlan0
+
+[Network]
+DHCP=yes
+
+[DHCPv4]
+RouteMetric=100

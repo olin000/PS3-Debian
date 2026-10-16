@@ -1,0 +1,14 @@
+[Unit]
+Description=WPA Supplicant for PS3 Built-in Wi-Fi (wlan0)
+Requires=sys-subsystem-net-devices-wlan0.device
+After=sys-subsystem-net-devices-wlan0.device
+Before=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/sbin/wpa_supplicant -i wlan0 -D wext -c /etc/wpa_supplicant.conf
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

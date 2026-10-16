@@ -1,0 +1,8 @@
+# /etc/modules: kernel modules to load at boot time.
+#
+# This file contains the names of kernel modules that should be loaded
+# at boot time, one per line. Lines beginning with "#" are ignored.
+
+rt2800usb
+ps3_jupiter
+ps3_jupiter_sta

@@ -1,28 +1,106 @@
-# PS3 Debian
+# PS3 Debian (Linux 6.7.0-rc2 & Built-in Jupiter Wi-Fi)
 
-As a proof of concept, I have managed to successfully upgrade PS3 to Linux debian 6.3.0 kernel on my PS3 Slim.
+This repository provides kernel files, configuration scripts, and drivers to run modern Debian on the PlayStation 3 (tested on PS3 Slim with OtherOS++ / CFW Evilnat).
 
 Respective files are stored under https://github.com/olin000/PS3-Debian
 
-Linux debian 6.3.0 #4 SMP Sat May 13 21:11:36 CEST 2023 ppc64 GNU/Linux
+```text
+Linux debian 6.7.0-rc2 #11 SMP ppc64 GNU/Linux
+Debian GNU/Linux forky/sid (PowerPC 64-bit kernel, multi-arch userland)
+```
 
-Distributor ID: Debian
-Description:    Debian GNU/Linux 12 (bookworm)
-Release:    12
-Codename:   bookworm
+---
 
-Notes:
-1. The initial steps are as described in the thread https://www.psx-place.com/threads/tutorial-read-warning-installing-red-ribbon-linux-on-rebug-4-81-2-4-84-2-d-rex.16419/ with this main difference that I was not partitioning the console's hard drive, but rather installing Red Ribbon GNU/Linux for PS3 from one USB memory stick (where the ISO got unpacked) to another USB memory stick
-2. At the time of writing this I am using Cobra version 8.4 Cobra fw version 4.9 (CFW Evilnat)
-3. For your convenience it is important to have yaboot.conf script stored in /etc/ of the Linux's (not Petitboot's) drive. It went missing for me in one of the steps (probably during the packages update). Otherwise one might be forced to boot Linux using kexec command (see \etc\petit_script)
-4. I could not make use of the old modules/drivers for the PS3 wireless card (Jupiter), not to say about finding their new version. Hence I am using my WiFi dongle Ralink Technology, Corp. RT5572 Wireless Adapter. The kernel module for it is rt2800usb. You might need to additionally install one of the "firmware-*" packages for you card to work like this.
+## What's New: Working PS3 Built-in Wi-Fi (Jupiter) on Modern Linux!
 
-Steps:
-1. Install Red Ribbon GNU/Linux for PS3
-2. Update the apt sources to "deb http://ftp.ports.debian.org/debian-ports/ sid main"
-3. Upgrade the packages. This I see as most tricky. There were many cross/missing dependencies in the packages and often the installation had to be forced, sometimes with downloading a new package and installing with dpkg, not upgrading with apt. At the end when it was all fixed, I forced reinstalled all the packages, just to be sure
-4. Install additional packages. E.g. git
-5. Clone the current Linux kernel with "git clone https://kernel.googlesource.com/pub/scm/linux/kernel/git/geoff/ps3-linux"
-6. Make and install the new kernel the usual way (compiled version of the kernel is stored in my GitHub). I used the default config, just adding the rt2800usb (and in general wireless) modules to it.
+Under Custom Firmware / OtherOS++, the Sony hypervisor disables the internal GELIC wireless VLAN, which is why official Sony OtherOS Wi-Fi never worked on custom firmware. 
 
-Hope this helps :)
+Historically, the homebrew community accessed the internal Wi-Fi/Bluetooth composite hardware (`054c:036f` on internal USB Bus 3) using an out-of-tree driver written by Geoffrey Levand (`glevand`) called **Jupiter** (`ps3_jupiter` and `ps3_jupiter_sta`). However, `ps3_jupiter` was never merged into the upstream Linux kernel, and after Linux 3.12/3.16 it was abandoned and broke due to extensive Linux kernel API changes.
+
+**The Jupiter Wi-Fi driver has now been updated and ported to Linux 6.7!**
+- Hardware authentication with the internal Sony Eurus Wi-Fi chip is fully restored.
+- Provides standard 802.11b/g station connectivity (`wlan0`) with WPA/WPA2-PSK support.
+- Eliminates the need for external USB Wi-Fi dongles, freeing up the console's USB ports.
+- Source code and pre-compiled 6.7.0-rc2 binaries are included under `wifi-jupiter/`.
+
+---
+
+## Repository Structure
+
+- `boot/`: Pre-compiled kernel binaries (`vmlinux-6.7.0-rc2`, `initrd.img-6.7.0-rc2`, `config-6.7.0-rc2`, `System.map-6.7.0-rc2`), alongside legacy 6.3.0 files.
+- `wifi-jupiter/`:
+  - `src/`: Modernized source code (`Makefile`, `ps3_jupiter.c`, `ps3_jupiter_sta.c`, `ps3_jupiter.h`, `ps3_eurus.h`) compatible with modern 6.x kernels.
+  - `bin/`: Pre-compiled 6.7.0-rc2 modules (`ps3_jupiter.ko`, `ps3_jupiter_sta.ko`).
+- `etc/`: Configuration templates:
+  - `modules`: Autoloads `ps3_jupiter`, `ps3_jupiter_sta`, and fallback `rt2800usb`.
+  - `yaboot.conf`: Bootloader configuration for Petitboot / yaboot.
+  - `NetworkManager/conf.d/10-unmanage-wlan0.conf`: Instructs NetworkManager to leave the WEXT interface alone.
+  - `systemd/system/wpa_supplicant-wlan0.service`: Systemd service to associate the built-in Wi-Fi card on boot.
+  - `systemd/network/20-wlan0.network`: Enables DHCP for `wlan0` via `systemd-networkd`.
+  - `wpa_supplicant.conf.example`: Example Wi-Fi credentials configuration.
+- `usr/modules/6.7.0-rc2/`: Full kernel modules tree for Linux 6.7.0-rc2.
+
+---
+
+## Notes & Prerequisites
+
+1. **Initial Installation**: The initial installation follows the guide on PSX-Place: [Installing Red Ribbon Linux on Rebug / Evilnat](https://www.psx-place.com/threads/tutorial-read-warning-installing-red-ribbon-linux-on-rebug-4-81-2-4-84-2-d-rex.16419/). It is recommended to install onto a dedicated USB drive or external drive before upgrading.
+2. **Firmware**: Tested on Cobra CFW (e.g. CFW Evilnat 4.9x with OtherOS++ support).
+3. **Bootloader Config**: Keep `yaboot.conf` in `/etc/` of your Linux root partition so Petitboot can detect boot options automatically.
+4. **USB Wi-Fi Fallback**: If you prefer or need to use an external USB Wi-Fi dongle (such as a Ralink RT5572 with the `rt2800usb` driver), the `rt2800usb` module is preserved in `/etc/modules` and the 6.7.0-rc2 module tree. NetworkManager will automatically manage the USB stick (`wlu1`) if plugged in.
+
+---
+
+## How to Enable the Built-in Wi-Fi (Jupiter)
+
+### 1. Install the Kernel Modules
+Copy the pre-compiled modules to your kernel modules directory:
+```bash
+sudo mkdir -p /lib/modules/6.7.0-rc2/kernel/drivers/net/wireless/ps3jupiter
+sudo cp wifi-jupiter/bin/ps3_jupiter*.ko /lib/modules/6.7.0-rc2/kernel/drivers/net/wireless/ps3jupiter/
+sudo depmod -a 6.7.0-rc2
+```
+*(Or compile them from source in `wifi-jupiter/src` by running `make`)*.
+
+### 2. Autoload at Boot
+Add `ps3_jupiter` and `ps3_jupiter_sta` to `/etc/modules`:
+```bash
+sudo tee -a /etc/modules << EOF
+ps3_jupiter
+ps3_jupiter_sta
+EOF
+```
+
+### 3. Configure Wi-Fi Credentials
+Create `/etc/wpa_supplicant.conf`:
+```text
+ctrl_interface=/run/wpa_supplicant
+update_config=1
+
+network={
+    ssid="YOUR_WIFI_SSID"
+    key_mgmt=WPA-PSK
+    psk="YOUR_WIFI_PASSWORD"
+}
+```
+
+### 4. Enable Services
+Copy the provided service and network configs:
+```bash
+# Prevent NetworkManager from mistaking wlan0 for a wired port
+sudo cp etc/NetworkManager/conf.d/10-unmanage-wlan0.conf /etc/NetworkManager/conf.d/
+
+# Enable WPA supplicant and DHCP on wlan0
+sudo cp etc/systemd/system/wpa_supplicant-wlan0.service /etc/systemd/system/
+sudo cp etc/systemd/network/20-wlan0.network /etc/systemd/network/
+
+sudo systemctl daemon-reload
+sudo systemctl enable wpa_supplicant-wlan0.service systemd-networkd.service
+```
+
+### 5. Reboot and Disconnect USB Wi-Fi Stick
+Reboot the console (`sudo reboot`). On reboot, `ps3_jupiter` initializes the internal Eurus hardware, connects to your Wi-Fi network, and obtains an IP address automatically over DHCP.
+
+---
+
+Hope this helps the PS3 Linux community! :)
