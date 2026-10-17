@@ -1,0 +1,5 @@
+Types: deb
+URIs: http://deb.debian.org/debian-ports/
+Suites: sid
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-ports-archive-keyring.gpg
