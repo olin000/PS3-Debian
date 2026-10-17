@@ -38,7 +38,7 @@ Historically, the homebrew community accessed the internal Wi-Fi/Bluetooth compo
   - `systemd/system/wpa_supplicant-wlan0.service`: Systemd service to associate the built-in Wi-Fi card on boot.
   - `systemd/network/20-wlan0.network`: Enables DHCP for `wlan0` via `systemd-networkd`.
   - `wpa_supplicant.conf.example`: Example Wi-Fi credentials configuration.
-- `usr/modules/6.7.0-rc2/`: Full kernel modules tree for Linux 6.7.0-rc2.
+- `lib/modules/6.7.0-rc2/`: Full kernel modules tree for Linux 6.7.0-rc2.
 
 ---
 
