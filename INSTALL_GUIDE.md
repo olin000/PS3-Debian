@@ -66,11 +66,14 @@ This guide walks you through bootstrapping a fresh, modern **Debian Sid (PowerPC
 Format the partitions with backwards-compatible flags:
 
 ```bash
-# 1. Format Root partition (ext4 without unsupported modern journal flags)
-sudo mkfs.ext4 -b 4096 -O ^orphan_file,^metadata_csum_seed -L ps3root /dev/sdX1
+# 1. Format Root partition with Petitboot-compatible ext4 features:
+# Modern distros enable metadata checksums (^metadata_csum, ^orphan_file) which inject
+# JBD2 csum_v3 tags into the journal that Petitboot's legacy kernel driver cannot parse.
+sudo mkfs.ext4 -b 4096 -O ^metadata_csum,^orphan_file,^metadata_csum_seed -L ps3root /dev/sdX1
 
-# (Optional recommended) Run without journal for zero Petitboot journal errors and reduced USB wear:
-sudo tune2fs -O ^has_journal /dev/sdX1
+# Note: Disabling metadata_csum keeps the journal 100% compatible with Petitboot OtherOS++
+# while preserving crash resilience against power outages.
+# (If running on a low-end USB flash drive and wishing to minimize write cycles: sudo tune2fs -O ^has_journal /dev/sdX1)
 
 # 2. Format Swap partition
 sudo mkswap -L ps3swap /dev/sdX2
@@ -299,12 +302,20 @@ sudo udisksctl power-off -b /dev/sdX 2>/dev/null || true
 
 ## Troubleshooting
 
-### 1. Petitboot reports `unrecognised features on journal`
-Modern ext4 journal features were added by your host PC. Reconnect the drive to your host and remove the journal:
+### 1. Petitboot reports `unrecognised features on journal` / `error loading journal`
+Modern ext4 metadata checksums (`metadata_csum` / `journal_incompat_csum_v3`) were set by modern e2fsprogs. Petitboot's built-in kernel (~2014) cannot parse JBD2 checksum tags.
+To fix this and keep full crash resilience with 100% Petitboot compatibility:
 ```bash
-sudo tune2fs -O ^has_journal /dev/sdX1
-sudo e2fsck -f -y /dev/sdX1
+# Connect drive to host PC (e.g. /dev/sdX1):
+sudo e2fsck -f /dev/sdX1
+sudo tune2fs -O ^metadata_csum /dev/sdX1
+sudo tune2fs -j /dev/sdX1
+sudo e2fsck -f /dev/sdX1
+
+# Verify journal features show (none) or journal_incompat_revoke:
+sudo dumpe2fs -h /dev/sdX1 | grep -i "Journal features"
 ```
+*(Alternatively, remove the journal entirely: `sudo tune2fs -O ^has_journal /dev/sdX1`)*
 
 ### 2. Drops to BusyBox / `scripts/local-block` fails
 The mechanical drive did not spin up in time before initramfs searched for the UUID.
