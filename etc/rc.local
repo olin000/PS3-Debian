@@ -1,0 +1,11 @@
+﻿#!/bin/sh -e
+#
+# /etc/rc.local
+#
+# Initialize and activate PS3 RSX VRAM high-priority fast swap (256MB)
+if [ -b /dev/ps3vram ] && ! grep -q "/dev/ps3vram" /proc/swaps; then
+    mkswap -f /dev/ps3vram >/dev/null 2>&1
+    swapon -p 150 /dev/ps3vram >/dev/null 2>&1 || true
+fi
+
+exit 0

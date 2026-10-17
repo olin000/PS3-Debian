@@ -1,0 +1,14 @@
+﻿[Unit]
+Description=/etc/rc.local Compatibility
+ConditionPathExists=/etc/rc.local
+After=network.target
+
+[Service]
+Type=forking
+ExecStart=/etc/rc.local start
+TimeoutSec=0
+StandardOutput=journal+console
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

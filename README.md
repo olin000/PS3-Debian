@@ -44,10 +44,11 @@ Historically, the homebrew community accessed the internal Wi-Fi/Bluetooth compo
 
 ## Notes & Prerequisites
 
-1. **Initial Installation**: The initial installation follows the guide on PSX-Place: [Installing Red Ribbon Linux on Rebug / Evilnat](https://www.psx-place.com/threads/tutorial-read-warning-installing-red-ribbon-linux-on-rebug-4-81-2-4-84-2-d-rex.16419/). It is recommended to install onto a dedicated USB drive or external drive before upgrading.
-2. **Firmware**: Tested on Cobra CFW (e.g. CFW Evilnat 4.9x with OtherOS++ support).
-3. **Bootloader Config**: Keep `yaboot.conf` in `/etc/` of your Linux root partition so Petitboot can detect boot options automatically.
-4. **USB Wi-Fi Fallback**: If you prefer or need to use an external USB Wi-Fi dongle (such as a Ralink RT5572 with the `rt2800usb` driver), the `rt2800usb` module is preserved in `/etc/modules` and the 6.7.0-rc2 module tree. NetworkManager will automatically manage the USB stick (`wlu1`) if plugged in.
+1. **From-Scratch Setup Guide**: For a complete, step-by-step walkthrough covering target drive partitioning, QEMU-based debootstrap, Wi-Fi driver setup, and troubleshooting common pitfalls (such as Petitboot ext4 filesystem compatibility and mechanical drive spin-up delays), see the **[Complete Installation & Bootstrap Guide](INSTALL_GUIDE.md)**.
+2. **Initial Installation (Alternative)**: The legacy installation method follows the guide on PSX-Place: [Installing Red Ribbon Linux on Rebug / Evilnat](https://www.psx-place.com/threads/tutorial-read-warning-installing-red-ribbon-linux-on-rebug-4-81-2-4-84-2-d-rex.16419/).
+3. **Firmware**: Tested on Cobra CFW (e.g. CFW Evilnat 4.9x with OtherOS++ support).
+4. **Bootloader Config**: Keep `yaboot.conf` in `/etc/` of your Linux root partition so Petitboot can detect boot options automatically.
+5. **USB Wi-Fi Fallback**: If you prefer or need to use an external USB Wi-Fi dongle (such as a Ralink RT5572 with the `rt2800usb` driver), the `rt2800usb` module is preserved in `/etc/modules` and the 6.7.0-rc2 module tree. NetworkManager will automatically manage the USB stick (`wlu1`) if plugged in.
 
 ---
 

@@ -1,0 +1,6 @@
+﻿# /etc/fstab: static file system information.
+#
+# <file system>                             <mount point>   <type>  <options>                               <dump>  <pass>
+proc                                        /proc           proc    defaults                                0       0
+UUID=YOUR_ROOT_PARTITION_UUID_HERE          /               ext4    relatime,defaults,errors=remount-ro     0       1
+UUID=YOUR_SWAP_PARTITION_UUID_HERE          none            swap    sw,pri=10                               0       0
